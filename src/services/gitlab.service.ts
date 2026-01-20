@@ -107,13 +107,14 @@ async function parallelMap<T, R>(
   fn: (item: T) => Promise<R>,
   concurrency: number,
 ): Promise<R[]> {
-  const results: R[] = [];
-  let index = 0;
+  const results: R[] = new Array(items.length);
+  const queue = items.map((_, i) => i);
 
   async function worker(): Promise<void> {
-    while (index < items.length) {
-      const currentIndex = index++;
-      results[currentIndex] = await fn(items[currentIndex]);
+    while (queue.length > 0) {
+      const index = queue.shift();
+      if (index === undefined) break;
+      results[index] = await fn(items[index]);
     }
   }
 

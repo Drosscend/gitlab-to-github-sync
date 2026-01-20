@@ -25,20 +25,12 @@ export async function createContributionCommit(
   const git: SimpleGit = simpleGit(githubRepoPath);
   const commitTitle = commit.message.split("\n")[0];
 
-  // Create/update a contributions log file
-  const logFilePath = join(githubRepoPath, "contributions.md");
+  // Update sync file with current commit hash (O(1) - just overwrite)
+  const syncFilePath = join(githubRepoPath, ".sync");
+  await Bun.write(syncFilePath, commit.hash);
 
-  // Append contribution entry
-  const entry = `- [${commit.repoName}] ${commitTitle} (${commit.hash.substring(0, 7)})\n`;
+  await git.add(syncFilePath);
 
-  const file = Bun.file(logFilePath);
-  const existing = (await file.exists()) ? await file.text() : "";
-  await Bun.write(logFilePath, existing + entry);
-
-  // Stage the file
-  await git.add(logFilePath);
-
-  // Create commit with original date and author using git env (isolated, not global)
   const commitMessage = `[${commit.repoName}] ${commitTitle}`;
 
   await git
@@ -67,16 +59,14 @@ export async function initGitHubRepo(repoPath: string): Promise<void> {
     await git.init();
     log.info(`Initialized new git repository at ${repoPath}`);
 
-    // Create initial README
     const readmePath = join(repoPath, "README.md");
     await Bun.write(
       readmePath,
-      "# Contributions\n\nThis repository tracks my coding activity across different platforms.\n",
+      "# Work Activity\n\nThis repository tracks my coding activity.\n",
     );
 
-    // Create contributions file
-    const contribPath = join(repoPath, "contributions.md");
-    await Bun.write(contribPath, "# Activity Log\n\n");
+    const syncPath = join(repoPath, ".sync");
+    await Bun.write(syncPath, "init");
 
     await git.add(".");
     await git.commit("Initial commit");

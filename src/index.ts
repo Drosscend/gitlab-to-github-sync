@@ -7,6 +7,7 @@ import {
 } from "./services";
 import type { SyncConfig, SyncedCommitsRecord } from "./types";
 import {
+  ProgressBar,
   isCommitSynced,
   loadSyncedCommits,
   log,
@@ -129,9 +130,10 @@ async function sync(): Promise<void> {
   );
 
   // Create contribution commits with incremental save
-  console.log("\nSyncing commits:");
+  console.log("\nSyncing commits:\n");
   let successCount = 0;
-  const saveInterval = 50; // Save progress every N commits
+  const saveInterval = 50;
+  const progress = new ProgressBar(newCommits.length);
 
   for (let i = 0; i < newCommits.length; i++) {
     const commit = newCommits[i];
@@ -143,24 +145,23 @@ async function sync(): Promise<void> {
         config.githubAuthorEmail,
       );
       markCommitSynced(syncedRecord, commit.hash);
-      log.commit(commit.repoName, commit.message, commit.date.substring(0, 10));
       successCount++;
+      progress.update(successCount, commit.date.substring(0, 10));
 
       // Incremental save to prevent data loss on crash
       if (successCount % saveInterval === 0) {
         await saveSyncedCommits(syncedFile, syncedRecord);
-        log.info(`Progress saved (${successCount}/${newCommits.length})`);
       }
     } catch (error) {
-      log.error(`Failed to sync commit ${commit.hash}: ${error}`);
+      log.error(`\nFailed to sync commit ${commit.hash}: ${error}`);
     }
   }
 
   // Final save
   await saveSyncedCommits(syncedFile, syncedRecord);
+  progress.complete();
 
-  console.log(`\n${"─".repeat(60)}`);
-  log.success(`Synced ${successCount}/${newCommits.length} commits`);
+  console.log(`${"─".repeat(60)}`);
 
   // Push to GitHub
   console.log("\nPushing to GitHub...");
