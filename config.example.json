@@ -1,0 +1,10 @@
+{
+  "gitlab": {
+    "url": "https://gitlab.com",
+    "token": "glpat-xxxxxxxxxxxxxxxxxxxx",
+    "authorEmail": "ton-email@company.com"
+  },
+  "githubRepoPath": "/chemin/vers/ton/repo/github/contributions",
+  "githubAuthorName": "Ton Nom",
+  "githubAuthorEmail": "ton-email-github@gmail.com"
+}
