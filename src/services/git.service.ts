@@ -23,12 +23,13 @@ export async function createContributionCommit(
   authorEmail: string,
 ): Promise<void> {
   const git: SimpleGit = simpleGit(githubRepoPath);
+  const commitTitle = commit.message.split("\n")[0];
 
   // Create/update a contributions log file
   const logFilePath = join(githubRepoPath, "contributions.md");
 
   // Append contribution entry
-  const entry = `- [${commit.repoName}] ${commit.message.split("\n")[0]} (${commit.hash.substring(0, 7)})\n`;
+  const entry = `- [${commit.repoName}] ${commitTitle} (${commit.hash.substring(0, 7)})\n`;
 
   const file = Bun.file(logFilePath);
   const existing = (await file.exists()) ? await file.text() : "";
@@ -37,26 +38,17 @@ export async function createContributionCommit(
   // Stage the file
   await git.add(logFilePath);
 
-  // Create commit with original date and specified author
-  const commitMessage = `[${commit.repoName}] ${commit.message.split("\n")[0]}`;
+  // Create commit with original date and author using git env (isolated, not global)
+  const commitMessage = `[${commit.repoName}] ${commitTitle}`;
 
-  // Set environment variables for the commit
-  process.env.GIT_AUTHOR_DATE = commit.date;
-  process.env.GIT_COMMITTER_DATE = commit.date;
-  process.env.GIT_AUTHOR_NAME = authorName;
-  process.env.GIT_AUTHOR_EMAIL = authorEmail;
-  process.env.GIT_COMMITTER_NAME = authorName;
-  process.env.GIT_COMMITTER_EMAIL = authorEmail;
-
-  await git.commit(commitMessage);
-
-  // Clean up env variables
-  delete process.env.GIT_AUTHOR_DATE;
-  delete process.env.GIT_COMMITTER_DATE;
-  delete process.env.GIT_AUTHOR_NAME;
-  delete process.env.GIT_AUTHOR_EMAIL;
-  delete process.env.GIT_COMMITTER_NAME;
-  delete process.env.GIT_COMMITTER_EMAIL;
+  await git
+    .env("GIT_AUTHOR_DATE", commit.date)
+    .env("GIT_COMMITTER_DATE", commit.date)
+    .env("GIT_AUTHOR_NAME", authorName)
+    .env("GIT_AUTHOR_EMAIL", authorEmail)
+    .env("GIT_COMMITTER_NAME", authorName)
+    .env("GIT_COMMITTER_EMAIL", authorEmail)
+    .commit(commitMessage);
 }
 
 /**

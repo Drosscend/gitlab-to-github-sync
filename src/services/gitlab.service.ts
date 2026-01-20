@@ -6,6 +6,9 @@ import type {
 } from "../types";
 import { log } from "../utils";
 
+const CONCURRENCY_LIMIT = 5;
+const MAX_PAGES = 1000; // Safety limit to prevent infinite loops
+
 /**
  * Fetches all projects the user has access to
  */
@@ -16,7 +19,7 @@ async function fetchAllProjects(
   let page = 1;
   const perPage = 100;
 
-  while (true) {
+  while (page <= MAX_PAGES) {
     const response = await fetch(
       `${config.url}/api/v4/projects?membership=true&per_page=${perPage}&page=${page}`,
       {
@@ -51,7 +54,7 @@ async function fetchProjectCommits(
   let page = 1;
   const perPage = 100;
 
-  while (true) {
+  while (page <= MAX_PAGES) {
     const url = new URL(
       `${config.url}/api/v4/projects/${project.id}/repository/commits`,
     );
@@ -97,6 +100,33 @@ async function fetchProjectCommits(
 }
 
 /**
+ * Process items in parallel with concurrency limit
+ */
+async function parallelMap<T, R>(
+  items: T[],
+  fn: (item: T) => Promise<R>,
+  concurrency: number,
+): Promise<R[]> {
+  const results: R[] = [];
+  let index = 0;
+
+  async function worker(): Promise<void> {
+    while (index < items.length) {
+      const currentIndex = index++;
+      results[currentIndex] = await fn(items[currentIndex]);
+    }
+  }
+
+  const workers = Array.from(
+    { length: Math.min(concurrency, items.length) },
+    () => worker(),
+  );
+  await Promise.all(workers);
+
+  return results;
+}
+
+/**
  * Fetches all commits from all GitLab projects for the configured author
  */
 export async function fetchAllGitLabCommits(
@@ -106,19 +136,26 @@ export async function fetchAllGitLabCommits(
   const projects = await fetchAllProjects(config);
   log.success(`Found ${projects.length} projects`);
 
-  const allCommits: CommitInfo[] = [];
-
-  for (const project of projects) {
-    try {
-      const commits = await fetchProjectCommits(config, project);
-      if (commits.length > 0) {
-        log.info(`  ${project.path_with_namespace}: ${commits.length} commits`);
-        allCommits.push(...commits);
+  // Fetch commits from all projects in parallel with concurrency limit
+  const results = await parallelMap(
+    projects,
+    async (project) => {
+      try {
+        const commits = await fetchProjectCommits(config, project);
+        if (commits.length > 0) {
+          log.info(
+            `  ${project.path_with_namespace}: ${commits.length} commits`,
+          );
+        }
+        return commits;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        log.warn(`  ${project.path_with_namespace}: skipped (${message})`);
+        return [];
       }
-    } catch (error) {
-      log.warn(`  ${project.path_with_namespace}: skipped (${error})`);
-    }
-  }
+    },
+    CONCURRENCY_LIMIT,
+  );
 
-  return allCommits;
+  return results.flat();
 }

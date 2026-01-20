@@ -15,6 +15,45 @@ import {
 } from "./utils";
 
 /**
+ * Validates the configuration object
+ */
+function validateConfig(config: unknown): SyncConfig {
+  if (!config || typeof config !== "object") {
+    throw new Error("Config must be an object");
+  }
+
+  const c = config as Record<string, unknown>;
+
+  // Validate gitlab section
+  if (!c.gitlab || typeof c.gitlab !== "object") {
+    throw new Error("Missing 'gitlab' section in config");
+  }
+  const gitlab = c.gitlab as Record<string, unknown>;
+  if (typeof gitlab.url !== "string" || !gitlab.url) {
+    throw new Error("Missing 'gitlab.url' in config");
+  }
+  if (typeof gitlab.token !== "string" || !gitlab.token) {
+    throw new Error("Missing 'gitlab.token' in config");
+  }
+  if (typeof gitlab.authorEmail !== "string" || !gitlab.authorEmail) {
+    throw new Error("Missing 'gitlab.authorEmail' in config");
+  }
+
+  // Validate other required fields
+  if (typeof c.githubRepoPath !== "string" || !c.githubRepoPath) {
+    throw new Error("Missing 'githubRepoPath' in config");
+  }
+  if (typeof c.githubAuthorName !== "string" || !c.githubAuthorName) {
+    throw new Error("Missing 'githubAuthorName' in config");
+  }
+  if (typeof c.githubAuthorEmail !== "string" || !c.githubAuthorEmail) {
+    throw new Error("Missing 'githubAuthorEmail' in config");
+  }
+
+  return config as SyncConfig;
+}
+
+/**
  * Loads configuration from config.json
  */
 async function loadConfig(): Promise<SyncConfig> {
@@ -22,14 +61,22 @@ async function loadConfig(): Promise<SyncConfig> {
   const configFile = Bun.file(configPath);
 
   if (!(await configFile.exists())) {
-    log.error(
+    throw new Error(
       "config.json not found. Please create it based on config.example.json",
     );
-    process.exit(1);
   }
 
   const content = await configFile.text();
-  return JSON.parse(content);
+
+  try {
+    const parsed = JSON.parse(content);
+    return validateConfig(parsed);
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      throw new Error(`Invalid JSON in config.json: ${error.message}`);
+    }
+    throw error;
+  }
 }
 
 /**
@@ -81,11 +128,13 @@ async function sync(): Promise<void> {
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
   );
 
-  // Create contribution commits
+  // Create contribution commits with incremental save
   console.log("\nSyncing commits:");
   let successCount = 0;
+  const saveInterval = 50; // Save progress every N commits
 
-  for (const commit of newCommits) {
+  for (let i = 0; i < newCommits.length; i++) {
+    const commit = newCommits[i];
     try {
       await createContributionCommit(
         config.githubRepoPath,
@@ -96,12 +145,18 @@ async function sync(): Promise<void> {
       markCommitSynced(syncedRecord, commit.hash);
       log.commit(commit.repoName, commit.message, commit.date.substring(0, 10));
       successCount++;
+
+      // Incremental save to prevent data loss on crash
+      if (successCount % saveInterval === 0) {
+        await saveSyncedCommits(syncedFile, syncedRecord);
+        log.info(`Progress saved (${successCount}/${newCommits.length})`);
+      }
     } catch (error) {
       log.error(`Failed to sync commit ${commit.hash}: ${error}`);
     }
   }
 
-  // Save synced commits record
+  // Final save
   await saveSyncedCommits(syncedFile, syncedRecord);
 
   console.log(`\n${"─".repeat(60)}`);
