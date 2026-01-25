@@ -7,11 +7,11 @@ import {
 } from "./services";
 import type { SyncConfig, SyncedCommitsRecord } from "./types";
 import {
-  ProgressBar,
   isCommitSynced,
   loadSyncedCommits,
   log,
   markCommitSynced,
+  ProgressBar,
   saveSyncedCommits,
 } from "./utils";
 
@@ -111,7 +111,7 @@ async function sync(): Promise<void> {
 
   // Fetch all commits from GitLab API
   const allCommits = await fetchAllGitLabCommits(config.gitlab);
-  log.success(`\nTotal: ${allCommits.length} commits found`);
+  log.success(`Total: ${allCommits.length} commits found`);
 
   // Filter out already synced commits
   const newCommits = allCommits.filter(
