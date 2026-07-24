@@ -4,13 +4,13 @@ Synchronizes GitLab commit activity to a GitHub repository using the GitLab API.
 
 ## Features
 
-- **No cloning required** - Uses GitLab API to fetch commits
+- **No cloning required** - Uses the GitLab API to fetch commit metadata
+- **Empty commits only** - Reproduces just the date; no source code, commit message, hash or project name is exposed
 - Automatically discovers all projects you have access to
 - Syncs commits from all branches
 - Filter by author email
 - Only processes new commits (avoids duplicates)
 - Preserves original commit dates
-- Creates metadata only (no code exposed)
 
 ## Prerequisites
 
@@ -110,8 +110,8 @@ bun run sync
 ℹ 500 new commits to sync
 
 Syncing commits:
-  │ [interne/project-1] feat: add new feature         2024-01-15
-  │ [interne/project-2] fix: resolve bug              2024-01-16
+  │ Work activity                                     2024-01-15
+  │ Work activity                                     2024-01-16
   ...
 
 ────────────────────────────────────────────────────────────

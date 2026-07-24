@@ -23,15 +23,10 @@ export async function createContributionCommit(
   authorEmail: string,
 ): Promise<void> {
   const git: SimpleGit = simpleGit(githubRepoPath);
-  const commitTitle = commit.message.split("\n")[0];
 
-  // Update sync file with current commit hash (O(1) - just overwrite)
-  const syncFilePath = join(githubRepoPath, ".sync");
-  await Bun.write(syncFilePath, commit.hash);
-
-  await git.add(syncFilePath);
-
-  const commitMessage = `[${commit.repoName}] ${commitTitle}`;
+  // Empty commit with a generic message: only the date is reproduced.
+  // The source commit's title, hash and project name never leave the company.
+  const commitMessage = "Work activity";
 
   await git
     .env("GIT_AUTHOR_DATE", commit.date)
@@ -40,7 +35,7 @@ export async function createContributionCommit(
     .env("GIT_AUTHOR_EMAIL", authorEmail)
     .env("GIT_COMMITTER_NAME", authorName)
     .env("GIT_COMMITTER_EMAIL", authorEmail)
-    .commit(commitMessage);
+    .commit(commitMessage, undefined, { "--allow-empty": null });
 }
 
 /**
@@ -64,9 +59,6 @@ export async function initGitHubRepo(repoPath: string): Promise<void> {
       readmePath,
       "# Work Activity\n\nThis repository tracks my coding activity.\n",
     );
-
-    const syncPath = join(repoPath, ".sync");
-    await Bun.write(syncPath, "init");
 
     await git.add(".");
     await git.commit("Initial commit");
