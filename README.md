@@ -72,14 +72,16 @@ Edit `config.json`:
 
 ### Configuration Options
 
-| Field                | Description                                                 |
-| -------------------- | ----------------------------------------------------------- |
-| `gitlab.url`         | GitLab instance URL                                         |
-| `gitlab.token`       | Personal Access Token with `read_api` scope                 |
-| `gitlab.authorEmail` | Email to filter commits (only your commits)                 |
-| `githubRepoPath`     | Path to the local GitHub repo                               |
-| `githubAuthorName`   | Name used for GitHub commits                                |
-| `githubAuthorEmail`  | Email for GitHub commits (must be verified on your account) |
+| Field                | Description                                                                |
+| -------------------- | -------------------------------------------------------------------------- |
+| `gitlab.url`         | GitLab instance URL                                                        |
+| `gitlab.token`       | Personal Access Token with `read_api` scope                                |
+| `gitlab.authorEmail` | Email to filter commits (only your commits)                                |
+| `gitlab.insecure`    | Optional. `true` skips TLS verification (self-signed GitLab certificate)   |
+| `githubRepoPath`     | Path to the local GitHub repo                                              |
+| `githubAuthorName`   | Name used for GitHub commits                                               |
+| `githubAuthorEmail`  | Email for GitHub commits (must be verified on your account)                |
+| `syncedCommitsFile`  | Optional. File tracking synced commits, defaults to `.synced-commits.json` |
 
 ## Usage
 
@@ -96,34 +98,34 @@ bun start
   GitLab → GitHub Contributions Sync
 ════════════════════════════════════════════════════════════
 
-ℹ GitLab: https://gitlab.example.com
-ℹ Author: your.email@company.com
-ℹ Found 0 previously synced commits
+[INFO] GitLab: https://gitlab.example.com
+[INFO] Author: your.email@company.com
+[INFO] Found 0 previously synced commits
 
-ℹ Fetching projects from GitLab...
-✓ Found 16 projects
-  interne/project-1: 45 commits
-  interne/project-2: 123 commits
-  ...
-
-✓ Total: 500 commits found
-ℹ 500 new commits to sync
+[INFO] Fetching projects from GitLab...
+[OK] Found 16 projects
+[INFO]   group/project-1: 45 commits
+[INFO]   group/project-2: 123 commits
+...
+[OK] Total: 500 commits found
+[INFO] 500 new commits to sync
 
 Syncing commits:
-  │ Work activity                                     2024-01-15
-  │ Work activity                                     2024-01-16
-  ...
 
+  [██████████████████████████████] 100% (500/500) 2024-01-16 9s
+[OK] Synced 500/500 commits in 9.4s
 ────────────────────────────────────────────────────────────
-✓ Synced 500/500 commits
 
 Pushing to GitHub...
-✓ Pushed changes to GitHub
+[OK] Pushed changes to GitHub
 
 ════════════════════════════════════════════════════════════
-✓ Sync complete!
+[OK] Sync complete!
 ════════════════════════════════════════════════════════════
 ```
+
+The process exits with code 1 when a commit or the push fails, so a
+scheduler can report the failure. Failed commits are retried on the next run.
 
 ### Automation with cron
 
