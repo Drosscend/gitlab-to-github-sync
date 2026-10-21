@@ -15,9 +15,6 @@ import {
   saveSyncedCommits,
 } from "./utils";
 
-/**
- * Validates the configuration object
- */
 const REQUIRED_FIELDS = [
   "gitlab.url",
   "gitlab.token",
@@ -43,9 +40,6 @@ function validateConfig(config: unknown): SyncConfig {
   return config as SyncConfig;
 }
 
-/**
- * Loads configuration from config.json
- */
 async function loadConfig(): Promise<SyncConfig> {
   const configPath = join(process.cwd(), "config.json");
   const configFile = Bun.file(configPath);
@@ -69,18 +63,13 @@ async function loadConfig(): Promise<SyncConfig> {
   }
 }
 
-/**
- * Main sync function
- */
 async function sync(): Promise<void> {
   console.log(`\n${"═".repeat(60)}`);
   console.log("  GitLab → GitHub Contributions Sync");
   console.log(`${"═".repeat(60)}\n`);
 
-  // Load configuration
   const config = await loadConfig();
 
-  // Handle insecure TLS for self-hosted GitLab
   if (config.gitlab.insecure) {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
     log.warn("TLS certificate verification disabled");
@@ -89,20 +78,16 @@ async function sync(): Promise<void> {
   log.info(`GitLab: ${config.gitlab.url}`);
   log.info(`Author: ${config.gitlab.authorEmail}`);
 
-  // Initialize GitHub repo if needed
   await initGitHubRepo(config.githubRepoPath);
 
-  // Load synced commits record
   const syncedFile = config.syncedCommitsFile ?? ".synced-commits.json";
   const syncedRecord = await loadSyncedCommits(syncedFile);
   const syncedCount = Object.keys(syncedRecord.commits).length;
   log.info(`Found ${syncedCount} previously synced commits\n`);
 
-  // Fetch all commits from GitLab API
   const allCommits = await fetchAllGitLabCommits(config.gitlab);
   log.success(`Total: ${allCommits.length} commits found`);
 
-  // Filter out already synced commits
   const newCommits = allCommits.filter(
     (commit) => !isCommitSynced(syncedRecord, commit.hash),
   );
@@ -113,12 +98,10 @@ async function sync(): Promise<void> {
     return;
   }
 
-  // Sort commits by date (oldest first)
   newCommits.sort(
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
   );
 
-  // Create contribution commits with incremental save
   console.log("\nSyncing commits:\n");
   let successCount = 0;
   let failedCount = 0;
@@ -147,13 +130,11 @@ async function sync(): Promise<void> {
     }
   }
 
-  // Final save
   await saveSyncedCommits(syncedFile, syncedRecord);
   progress.complete();
 
   console.log(`${"─".repeat(60)}`);
 
-  // Push to GitHub
   console.log("\nPushing to GitHub...");
   await pushToGitHub(config.githubRepoPath);
 
@@ -166,7 +147,6 @@ async function sync(): Promise<void> {
   console.log(`${"═".repeat(60)}\n`);
 }
 
-// Run the sync
 sync().catch((error) => {
   log.error(`Sync failed: ${error}`);
   process.exit(1);

@@ -1,8 +1,5 @@
 import chalk from "chalk";
 
-/**
- * Logger utility with colored output
- */
 export const log = {
   info: (message: string) => console.log(chalk.blue("[INFO]"), message),
   success: (message: string) => console.log(chalk.green("[OK]"), message),

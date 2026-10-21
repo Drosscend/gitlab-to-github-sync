@@ -10,9 +10,6 @@ const CONCURRENCY_LIMIT = 5;
 const MAX_PAGES = 1000; // Safety limit to prevent infinite loops
 const PER_PAGE = 100;
 
-/**
- * Fetches every page of a GitLab list endpoint
- */
 async function fetchAllPages<T>(
   config: GitLabConfig,
   path: string,
@@ -52,9 +49,6 @@ async function fetchAllPages<T>(
   return items;
 }
 
-/**
- * Fetches all commits from a project filtered by author email
- */
 async function fetchProjectCommits(
   config: GitLabConfig,
   project: GitLabProject,
@@ -72,9 +66,6 @@ async function fetchProjectCommits(
     .map((c) => ({ hash: c.id, date: c.authored_date }));
 }
 
-/**
- * Process items in parallel with concurrency limit
- */
 async function parallelMap<T, R>(
   items: T[],
   fn: (item: T) => Promise<R>,
@@ -100,9 +91,6 @@ async function parallelMap<T, R>(
   return results;
 }
 
-/**
- * Fetches all commits from all GitLab projects for the configured author
- */
 export async function fetchAllGitLabCommits(
   config: GitLabConfig,
 ): Promise<CommitInfo[]> {
@@ -112,7 +100,6 @@ export async function fetchAllGitLabCommits(
   });
   log.success(`Found ${projects.length} projects`);
 
-  // Fetch commits from all projects in parallel with concurrency limit
   const results = await parallelMap(
     projects,
     async (project) => {

@@ -13,9 +13,6 @@ async function directoryExists(path: string): Promise<boolean> {
   }
 }
 
-/**
- * Creates a contribution commit in the GitHub repository
- */
 export async function createContributionCommit(
   githubRepoPath: string,
   commit: CommitInfo,
@@ -44,9 +41,6 @@ export async function createContributionCommit(
     .commit(commitMessage, undefined, { "--allow-empty": null });
 }
 
-/**
- * Initializes the GitHub contributions repository if needed
- */
 export async function initGitHubRepo(repoPath: string): Promise<void> {
   if (!(await directoryExists(repoPath))) {
     await mkdir(repoPath, { recursive: true });
@@ -72,9 +66,6 @@ export async function initGitHubRepo(repoPath: string): Promise<void> {
   }
 }
 
-/**
- * Pushes changes to GitHub remote
- */
 export async function pushToGitHub(repoPath: string): Promise<void> {
   await simpleGit(repoPath).push("origin", "HEAD");
   log.success("Pushed changes to GitHub");

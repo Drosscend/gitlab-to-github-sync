@@ -1,9 +1,6 @@
 import chalk from "chalk";
 import { log } from "./log";
 
-/**
- * Progress bar for syncing commits
- */
 export class ProgressBar {
   private total: number;
   private current = 0;

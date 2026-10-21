@@ -2,9 +2,6 @@ import { mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
 import type { SyncedCommitsRecord } from "../types";
 
-/**
- * Loads the record of already synced commits
- */
 export async function loadSyncedCommits(
   filePath: string,
 ): Promise<SyncedCommitsRecord> {
@@ -20,9 +17,6 @@ export async function loadSyncedCommits(
   }
 }
 
-/**
- * Saves the record of synced commits
- */
 export async function saveSyncedCommits(
   filePath: string,
   record: SyncedCommitsRecord,
@@ -36,9 +30,6 @@ export async function saveSyncedCommits(
   await Bun.write(filePath, JSON.stringify(record, null, 2));
 }
 
-/**
- * Checks if a commit has already been synced
- */
 export function isCommitSynced(
   record: SyncedCommitsRecord,
   commitHash: string,
@@ -46,9 +37,6 @@ export function isCommitSynced(
   return commitHash in record.commits;
 }
 
-/**
- * Marks a commit as synced
- */
 export function markCommitSynced(
   record: SyncedCommitsRecord,
   commitHash: string,
