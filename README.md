@@ -72,14 +72,14 @@ Edit `config.json`:
 
 ### Configuration Options
 
-| Field | Description |
-|-------|-------------|
-| `gitlab.url` | GitLab instance URL |
-| `gitlab.token` | Personal Access Token with `read_api` scope |
-| `gitlab.authorEmail` | Email to filter commits (only your commits) |
-| `githubRepoPath` | Path to the local GitHub repo |
-| `githubAuthorName` | Name used for GitHub commits |
-| `githubAuthorEmail` | Email for GitHub commits (must be verified on your account) |
+| Field                | Description                                                 |
+| -------------------- | ----------------------------------------------------------- |
+| `gitlab.url`         | GitLab instance URL                                         |
+| `gitlab.token`       | Personal Access Token with `read_api` scope                 |
+| `gitlab.authorEmail` | Email to filter commits (only your commits)                 |
+| `githubRepoPath`     | Path to the local GitHub repo                               |
+| `githubAuthorName`   | Name used for GitHub commits                                |
+| `githubAuthorEmail`  | Email for GitHub commits (must be verified on your account) |
 
 ## Usage
 
@@ -140,7 +140,6 @@ crontab -e
 ## Important: GitHub Visibility
 
 For contributions to appear on your GitHub graph:
-
 1. **The commit email must match** a verified email on your GitHub account
 2. **The repo must exist** (public or private)
 3. **Enable private contributions** in GitHub settings if the repo is private
