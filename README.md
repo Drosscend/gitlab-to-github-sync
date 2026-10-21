@@ -86,7 +86,7 @@ Edit `config.json`:
 ### Run the synchronization
 
 ```bash
-bun run sync
+bun start
 ```
 
 ### Example output
@@ -134,7 +134,7 @@ To automatically synchronize every day:
 crontab -e
 
 # Add this line (sync at 8 PM every day)
-0 20 * * * cd /path/to/gitlab-to-github-sync && bun run sync >> /var/log/gitlab-sync.log 2>&1
+0 20 * * * cd /path/to/gitlab-to-github-sync && bun start >> /var/log/gitlab-sync.log 2>&1
 ```
 
 ## Important: GitHub Visibility
@@ -147,9 +147,6 @@ For contributions to appear on your GitHub graph:
 ## Development
 
 ```bash
-# Development mode
-bun run dev
-
 # Type check
 bun run typecheck
 

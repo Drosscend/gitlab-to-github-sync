@@ -2,13 +2,9 @@
   "name": "gitlab-github-contributions-sync",
   "version": "1.0.0",
   "description": "Sync GitLab commit activity to a GitHub repository (metadata only)",
-  "main": "dist/index.js",
   "scripts": {
-    "build": "bun run tsc",
-    "start": "bun dist/index.js",
-    "sync": "bun run build && bun run start",
-    "dev": "bun src/index.ts",
-    "typecheck": "bun run tsc --noEmit",
+    "start": "bun src/index.ts",
+    "typecheck": "bun run tsc",
     "format": "bun run biome format --write",
     "lint": "bun run biome lint --write",
     "check": "bun run biome check --write"
