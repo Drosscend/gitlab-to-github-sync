@@ -1,6 +1,6 @@
 import { mkdir, stat } from "node:fs/promises";
 import { join } from "node:path";
-import simpleGit, { type SimpleGit } from "simple-git";
+import { type SimpleGit, simpleGit } from "simple-git";
 import type { CommitInfo } from "../types";
 import { log } from "../utils";
 
@@ -22,19 +22,25 @@ export async function createContributionCommit(
   authorName: string,
   authorEmail: string,
 ): Promise<void> {
-  const git: SimpleGit = simpleGit(githubRepoPath);
+  const env = {
+    GIT_AUTHOR_DATE: commit.date,
+    GIT_COMMITTER_DATE: commit.date,
+    GIT_AUTHOR_NAME: authorName,
+    GIT_AUTHOR_EMAIL: authorEmail,
+    GIT_COMMITTER_NAME: authorName,
+    GIT_COMMITTER_EMAIL: authorEmail,
+  };
+  const git: SimpleGit = simpleGit({
+    baseDir: githubRepoPath,
+    allowEnvironment: Object.keys(env),
+  });
 
   // Empty commit with a generic message: only the date is reproduced.
   // The source commit's title, hash and project name never leave the company.
   const commitMessage = "Work activity";
 
   await git
-    .env("GIT_AUTHOR_DATE", commit.date)
-    .env("GIT_COMMITTER_DATE", commit.date)
-    .env("GIT_AUTHOR_NAME", authorName)
-    .env("GIT_AUTHOR_EMAIL", authorEmail)
-    .env("GIT_COMMITTER_NAME", authorName)
-    .env("GIT_COMMITTER_EMAIL", authorEmail)
+    .env(env)
     .commit(commitMessage, undefined, { "--allow-empty": null });
 }
 

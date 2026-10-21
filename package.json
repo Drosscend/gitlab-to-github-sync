@@ -22,8 +22,8 @@
   "author": "Kévin Véronési",
   "license": "MIT",
   "dependencies": {
-    "simple-git": "^3.22.0",
-    "chalk": "^4.1.2"
+    "chalk": "^4.1.2",
+    "simple-git": "^4.0.2"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.11",
