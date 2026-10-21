@@ -108,10 +108,3 @@ export class ProgressBar {
     log.success(`Synced ${this.current}/${this.total} commits in ${elapsed}s`);
   }
 }
-
-/**
- * Ensures a directory exists
- */
-export async function ensureDir(dirPath: string): Promise<void> {
-  await mkdir(dirPath, { recursive: true });
-}

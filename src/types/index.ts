@@ -4,10 +4,6 @@
 export interface CommitInfo {
   hash: string;
   date: string;
-  message: string;
-  author: string;
-  email: string;
-  repoName: string;
 }
 
 /**
@@ -55,17 +51,11 @@ export interface SyncedCommitsRecord {
  */
 export interface GitLabProject {
   id: number;
-  name: string;
   path_with_namespace: string;
 }
 
 export interface GitLabCommit {
   id: string;
-  short_id: string;
-  title: string;
-  message: string;
-  author_name: string;
   author_email: string;
   authored_date: string;
-  committed_date: string;
 }

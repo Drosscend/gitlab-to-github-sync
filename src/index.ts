@@ -5,7 +5,7 @@ import {
   initGitHubRepo,
   pushToGitHub,
 } from "./services";
-import type { SyncConfig, SyncedCommitsRecord } from "./types";
+import type { SyncConfig } from "./types";
 import {
   isCommitSynced,
   loadSyncedCommits,
@@ -105,7 +105,7 @@ async function sync(): Promise<void> {
 
   // Load synced commits record
   const syncedFile = config.syncedCommitsFile ?? ".synced-commits.json";
-  const syncedRecord: SyncedCommitsRecord = await loadSyncedCommits(syncedFile);
+  const syncedRecord = await loadSyncedCommits(syncedFile);
   const syncedCount = Object.keys(syncedRecord.commits).length;
   log.info(`Found ${syncedCount} previously synced commits\n`);
 

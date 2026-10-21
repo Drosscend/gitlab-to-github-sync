@@ -82,14 +82,7 @@ async function fetchProjectCommits(
     );
 
     for (const commit of filtered) {
-      commits.push({
-        hash: commit.id,
-        date: commit.authored_date,
-        message: commit.message,
-        author: commit.author_name,
-        email: commit.author_email,
-        repoName: project.path_with_namespace,
-      });
+      commits.push({ hash: commit.id, date: commit.authored_date });
     }
 
     if (data.length < perPage) break;
