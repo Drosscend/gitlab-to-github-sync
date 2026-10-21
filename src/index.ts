@@ -132,11 +132,11 @@ async function sync(): Promise<void> {
   // Create contribution commits with incremental save
   console.log("\nSyncing commits:\n");
   let successCount = 0;
+  let failedCount = 0;
   const saveInterval = 50;
   const progress = new ProgressBar(newCommits.length);
 
-  for (let i = 0; i < newCommits.length; i++) {
-    const commit = newCommits[i];
+  for (const commit of newCommits) {
     try {
       await createContributionCommit(
         config.githubRepoPath,
@@ -153,6 +153,7 @@ async function sync(): Promise<void> {
         await saveSyncedCommits(syncedFile, syncedRecord);
       }
     } catch (error) {
+      failedCount++;
       log.error(`\nFailed to sync commit ${commit.hash}: ${error}`);
     }
   }
@@ -166,6 +167,10 @@ async function sync(): Promise<void> {
   // Push to GitHub
   console.log("\nPushing to GitHub...");
   await pushToGitHub(config.githubRepoPath);
+
+  if (failedCount > 0) {
+    throw new Error(`${failedCount} commits could not be synced`);
+  }
 
   console.log(`\n${"═".repeat(60)}`);
   log.success("Sync complete!");

@@ -76,28 +76,6 @@ export async function initGitHubRepo(repoPath: string): Promise<void> {
  * Pushes changes to GitHub remote
  */
 export async function pushToGitHub(repoPath: string): Promise<void> {
-  const git: SimpleGit = simpleGit(repoPath);
-
-  try {
-    const remotes = await git.getRemotes(true);
-
-    if (remotes.length === 0) {
-      log.warn("No remote configured. Please add a GitHub remote:");
-      log.info(
-        "  git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git",
-      );
-      return;
-    }
-
-    await git.push("origin", "main");
-    log.success("Pushed changes to GitHub");
-  } catch (_error) {
-    // Try with master branch
-    try {
-      await git.push("origin", "master");
-      log.success("Pushed changes to GitHub");
-    } catch {
-      log.error("Could not push to GitHub. Check your remote configuration.");
-    }
-  }
+  await simpleGit(repoPath).push("origin", "HEAD");
+  log.success("Pushed changes to GitHub");
 }

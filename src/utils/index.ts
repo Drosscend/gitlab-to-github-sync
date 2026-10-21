@@ -9,20 +9,16 @@ import type { SyncedCommitsRecord } from "../types";
 export async function loadSyncedCommits(
   filePath: string,
 ): Promise<SyncedCommitsRecord> {
-  try {
-    const file = Bun.file(filePath);
-    if (await file.exists()) {
-      const content = await file.text();
-      return JSON.parse(content);
-    }
-  } catch (_error) {
-    log.warn("Could not load synced commits file, starting fresh");
+  const file = Bun.file(filePath);
+  if (!(await file.exists())) {
+    return { commits: {}, lastSync: new Date().toISOString() };
   }
 
-  return {
-    commits: {},
-    lastSync: new Date().toISOString(),
-  };
+  try {
+    return await file.json();
+  } catch (error) {
+    throw new Error(`Could not read ${filePath}: ${error}`);
+  }
 }
 
 /**
