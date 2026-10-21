@@ -18,37 +18,26 @@ import {
 /**
  * Validates the configuration object
  */
+const REQUIRED_FIELDS = [
+  "gitlab.url",
+  "gitlab.token",
+  "gitlab.authorEmail",
+  "githubRepoPath",
+  "githubAuthorName",
+  "githubAuthorEmail",
+];
+
 function validateConfig(config: unknown): SyncConfig {
-  if (!config || typeof config !== "object") {
-    throw new Error("Config must be an object");
-  }
-
-  const c = config as Record<string, unknown>;
-
-  // Validate gitlab section
-  if (!c.gitlab || typeof c.gitlab !== "object") {
-    throw new Error("Missing 'gitlab' section in config");
-  }
-  const gitlab = c.gitlab as Record<string, unknown>;
-  if (typeof gitlab.url !== "string" || !gitlab.url) {
-    throw new Error("Missing 'gitlab.url' in config");
-  }
-  if (typeof gitlab.token !== "string" || !gitlab.token) {
-    throw new Error("Missing 'gitlab.token' in config");
-  }
-  if (typeof gitlab.authorEmail !== "string" || !gitlab.authorEmail) {
-    throw new Error("Missing 'gitlab.authorEmail' in config");
-  }
-
-  // Validate other required fields
-  if (typeof c.githubRepoPath !== "string" || !c.githubRepoPath) {
-    throw new Error("Missing 'githubRepoPath' in config");
-  }
-  if (typeof c.githubAuthorName !== "string" || !c.githubAuthorName) {
-    throw new Error("Missing 'githubAuthorName' in config");
-  }
-  if (typeof c.githubAuthorEmail !== "string" || !c.githubAuthorEmail) {
-    throw new Error("Missing 'githubAuthorEmail' in config");
+  for (const field of REQUIRED_FIELDS) {
+    const value = field
+      .split(".")
+      .reduce<unknown>(
+        (node, key) => (node as Record<string, unknown> | undefined)?.[key],
+        config,
+      );
+    if (typeof value !== "string" || !value) {
+      throw new Error(`Missing '${field}' in config`);
+    }
   }
 
   return config as SyncConfig;
