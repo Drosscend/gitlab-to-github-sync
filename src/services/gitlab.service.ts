@@ -8,39 +8,48 @@ import { log } from "../utils";
 
 const CONCURRENCY_LIMIT = 5;
 const MAX_PAGES = 1000; // Safety limit to prevent infinite loops
+const PER_PAGE = 100;
 
 /**
- * Fetches all projects the user has access to
+ * Fetches every page of a GitLab list endpoint
  */
-async function fetchAllProjects(
+async function fetchAllPages<T>(
   config: GitLabConfig,
-): Promise<GitLabProject[]> {
-  const projects: GitLabProject[] = [];
-  let page = 1;
-  const perPage = 100;
+  path: string,
+  params: Record<string, string>,
+  { notFoundAsEmpty = false } = {},
+): Promise<T[]> {
+  const items: T[] = [];
 
-  while (page <= MAX_PAGES) {
-    const response = await fetch(
-      `${config.url}/api/v4/projects?membership=true&per_page=${perPage}&page=${page}`,
-      {
-        headers: { "PRIVATE-TOKEN": config.token },
-      },
-    );
+  for (let page = 1; page <= MAX_PAGES; page++) {
+    const url = new URL(`${config.url}/api/v4/${path}`);
+    for (const [key, value] of Object.entries({
+      ...params,
+      per_page: String(PER_PAGE),
+      page: String(page),
+    })) {
+      url.searchParams.set(key, value);
+    }
+
+    const response = await fetch(url, {
+      headers: { "PRIVATE-TOKEN": config.token },
+    });
 
     if (!response.ok) {
+      // Projects without a repository answer 404
+      if (notFoundAsEmpty && response.status === 404) break;
       throw new Error(
         `GitLab API error: ${response.status} ${response.statusText}`,
       );
     }
 
-    const data = (await response.json()) as GitLabProject[];
-    projects.push(...data);
+    const data = (await response.json()) as T[];
+    items.push(...data);
 
-    if (data.length < perPage) break;
-    page++;
+    if (data.length < PER_PAGE) break;
   }
 
-  return projects;
+  return items;
 }
 
 /**
@@ -50,46 +59,17 @@ async function fetchProjectCommits(
   config: GitLabConfig,
   project: GitLabProject,
 ): Promise<CommitInfo[]> {
-  const commits: CommitInfo[] = [];
-  let page = 1;
-  const perPage = 100;
+  const commits = await fetchAllPages<GitLabCommit>(
+    config,
+    `projects/${project.id}/repository/commits`,
+    { all: "true" },
+    { notFoundAsEmpty: true },
+  );
+  const email = config.authorEmail.toLowerCase();
 
-  while (page <= MAX_PAGES) {
-    const url = new URL(
-      `${config.url}/api/v4/projects/${project.id}/repository/commits`,
-    );
-    url.searchParams.set("per_page", perPage.toString());
-    url.searchParams.set("page", page.toString());
-    url.searchParams.set("all", "true"); // All branches
-
-    const response = await fetch(url.toString(), {
-      headers: { "PRIVATE-TOKEN": config.token },
-    });
-
-    if (!response.ok) {
-      // Some repos might not have commits or access issues
-      if (response.status === 404) break;
-      throw new Error(
-        `GitLab API error: ${response.status} ${response.statusText}`,
-      );
-    }
-
-    const data = (await response.json()) as GitLabCommit[];
-
-    // Filter by author email
-    const filtered = data.filter(
-      (c) => c.author_email.toLowerCase() === config.authorEmail.toLowerCase(),
-    );
-
-    for (const commit of filtered) {
-      commits.push({ hash: commit.id, date: commit.authored_date });
-    }
-
-    if (data.length < perPage) break;
-    page++;
-  }
-
-  return commits;
+  return commits
+    .filter((c) => c.author_email.toLowerCase() === email)
+    .map((c) => ({ hash: c.id, date: c.authored_date }));
 }
 
 /**
@@ -127,7 +107,9 @@ export async function fetchAllGitLabCommits(
   config: GitLabConfig,
 ): Promise<CommitInfo[]> {
   log.info("Fetching projects from GitLab...");
-  const projects = await fetchAllProjects(config);
+  const projects = await fetchAllPages<GitLabProject>(config, "projects", {
+    membership: "true",
+  });
   log.success(`Found ${projects.length} projects`);
 
   // Fetch commits from all projects in parallel with concurrency limit
