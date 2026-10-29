@@ -35,6 +35,10 @@ export interface GitLabProject {
   path_with_namespace: string;
 }
 
+export interface GitLabBranch {
+  name: string;
+}
+
 export interface GitLabCommit {
   id: string;
   author_email: string;

@@ -1,5 +1,6 @@
 import type {
   CommitInfo,
+  GitLabBranch,
   GitLabCommit,
   GitLabConfig,
   GitLabProject,
@@ -53,17 +54,30 @@ async function fetchProjectCommits(
   config: GitLabConfig,
   project: GitLabProject,
 ): Promise<CommitInfo[]> {
-  const commits = await fetchAllPages<GitLabCommit>(
+  const branches = await fetchAllPages<GitLabBranch>(
     config,
-    `projects/${project.id}/repository/commits`,
-    { all: "true" },
+    `projects/${project.id}/repository/branches`,
+    {},
     { notFoundAsEmpty: true },
   );
   const email = config.authorEmail.toLowerCase();
+  const commits = new Map<string, CommitInfo>();
 
-  return commits
-    .filter((c) => c.author_email.toLowerCase() === email)
-    .map((c) => ({ hash: c.id, date: c.authored_date }));
+  for (const branch of branches) {
+    const branchCommits = await fetchAllPages<GitLabCommit>(
+      config,
+      `projects/${project.id}/repository/commits`,
+      { ref_name: branch.name },
+      { notFoundAsEmpty: true },
+    );
+    for (const c of branchCommits) {
+      if (c.author_email.toLowerCase() === email) {
+        commits.set(c.id, { hash: c.id, date: c.authored_date });
+      }
+    }
+  }
+
+  return [...commits.values()];
 }
 
 async function parallelMap<T, R>(
@@ -120,5 +134,5 @@ export async function fetchAllGitLabCommits(
     CONCURRENCY_LIMIT,
   );
 
-  return results.flat();
+  return [...new Map(results.flat().map((c) => [c.hash, c])).values()];
 }
