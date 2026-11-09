@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import { styleText } from "node:util";
 import { log } from "./log";
 
 export class ProgressBar {
@@ -24,12 +24,14 @@ export class ProgressBar {
     const filled = Math.round((this.current / this.total) * this.barWidth);
     const empty = this.barWidth - filled;
 
-    const bar = chalk.green("█".repeat(filled)) + chalk.gray("░".repeat(empty));
+    const bar =
+      styleText("green", "█".repeat(filled)) +
+      styleText("gray", "░".repeat(empty));
     const stats = `${this.current}/${this.total}`;
     const elapsed = ((Date.now() - this.startTime) / 1000).toFixed(0);
 
     process.stdout.write(
-      `\r  [${bar}] ${chalk.cyan(percent.toString().padStart(3))}% ${chalk.gray(`(${stats})`)} ${chalk.yellow(this.currentDate)} ${chalk.gray(`${elapsed}s`)}`,
+      `\r  [${bar}] ${styleText("cyan", percent.toString().padStart(3))}% ${styleText("gray", `(${stats})`)} ${styleText("yellow", this.currentDate)} ${styleText("gray", `${elapsed}s`)}`,
     );
   }
 
