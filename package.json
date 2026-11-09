@@ -1,5 +1,6 @@
 {
-  "name": "gitlab-github-contributions-sync",
+  "name": "gitlab-to-github-sync",
+  "private": true,
   "version": "1.0.0",
   "description": "Sync GitLab commit activity to a GitHub repository (metadata only)",
   "scripts": {
