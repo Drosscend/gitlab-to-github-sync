@@ -42,9 +42,7 @@ export async function createContributionCommit(
 }
 
 export async function initGitHubRepo(repoPath: string): Promise<void> {
-  if (!(await directoryExists(repoPath))) {
-    await mkdir(repoPath, { recursive: true });
-  }
+  await mkdir(repoPath, { recursive: true });
 
   const gitDir = join(repoPath, ".git");
   const gitDirExists = await directoryExists(gitDir);

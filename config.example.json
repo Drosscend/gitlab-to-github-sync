@@ -2,9 +2,9 @@
   "gitlab": {
     "url": "https://gitlab.com",
     "token": "glpat-xxxxxxxxxxxxxxxxxxxx",
-    "authorEmail": "ton-email@company.com"
+    "authorEmail": "your.email@company.com"
   },
-  "githubRepoPath": "/chemin/vers/ton/repo/github/contributions",
-  "githubAuthorName": "Ton Nom",
-  "githubAuthorEmail": "ton-email-github@gmail.com"
+  "githubRepoPath": "/path/to/your/github-contributions",
+  "githubAuthorName": "Your Name",
+  "githubAuthorEmail": "your-github-email@example.com"
 }
