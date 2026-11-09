@@ -125,7 +125,8 @@ Pushing to GitHub...
 ```
 
 The process exits with code 1 when a commit or the push fails, so a
-scheduler can report the failure. Failed commits are retried on the next run.
+scheduler can report the failure. Failed commits and a failed push are retried
+on the next run.
 
 ### Automation with cron
 
@@ -142,6 +143,7 @@ crontab -e
 ## Important: GitHub Visibility
 
 For contributions to appear on your GitHub graph:
+
 1. **The commit email must match** a verified email on your GitHub account
 2. **The repo must exist** (public or private)
 3. **Enable private contributions** in GitHub settings if the repo is private
